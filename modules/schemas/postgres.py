@@ -3,14 +3,13 @@
 import psycopg
 import os
 
-port = os.environ.get('DBName')
-port = os.environ.get('DBUser')
-port = os.environ.get('DBHost')
+dbstring = os.environ.get('DBString')
 
-with psycopg.connect("host={DBHost} dbname={DBName} user={DBUser}") as conn:
+with psycopg.connect(f"{dbstring}") as conn:
 
     with conn.cursor() as cur:
 
-        with cur.copy("SELECT table_name FROM information_schema.tables WHERE table_schema='public'") as copy:
-            for row in copy.rows():
-                print(row)  # return unparsed data
+        # Pull list of names of tables
+        with cur.copy("SELECT table_name FROM information_schema.tables WHERE table_schema='public'") as tableNames:
+            for tableNames in tableNames.rows():
+                print(tableNames)  # return unparsed tables

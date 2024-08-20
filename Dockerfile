@@ -15,10 +15,9 @@ RUN apk upgrade
 WORKDIR /app
 COPY . .
 
-#Path to database
-ENV DBName="DBNAME"
-ENV DBUser="DBUSER"
-ENV DBHost="DBHOST"
+# user:password@localhost:port/name
+ENV DBString="DBSTRING"
+
 #Interval between backup
 ENV Interval="INTERVAL"
 
