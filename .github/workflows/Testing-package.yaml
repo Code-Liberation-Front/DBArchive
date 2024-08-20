@@ -41,3 +41,13 @@ jobs:
           build-args: |
             TAG=${{ env.VERSION }}
           provenance: false
+
+      - name: Remove untagged images excepted multiplatform packages
+        uses: Chizkiyahu/delete-untagged-ghcr-action@v4
+        with:
+          token: ${{ secrets.GH_PASS }}
+          repository_owner: ${{ github.repository_owner }}
+          repository: ${{ github.repository }}
+          untagged_only: true
+          owner_type: user
+          except_untagged_multiplatform: true
