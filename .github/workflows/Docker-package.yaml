@@ -1,0 +1,49 @@
+name: Docker Image Action for ghcr.io
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE: ${{ github.repository_owner }}/dbarchive
+  VERSION: 1.0.0
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Buildx Environment
+        uses: docker/setup-buildx-action@v3.3.0
+        with:
+          platforms: linux/amd64
+
+      - name: Log in to the Github Registry
+        uses: docker/login-action@v3.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PASS }}
+
+      - name: Remove old Testing Container
+        uses: ArchieAtkinson/remove-dockertag-action@v0.0
+        with:
+          tag_name: testing
+          github_token: ${{ secrets.GH_PASS }}
+
+      - name: Build and Push new Stable Image
+        uses: docker/build-push-action@v5.3.0
+        with:
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ env.IMAGE }}:${{ env.VERSION }}
+            ghcr.io/${{ env.IMAGE }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ env.IMAGE }}:latest
+          cache-to: type=inline
+          build-args: |
+            TAG=${{ env.VERSION }}
+          provenance: false
