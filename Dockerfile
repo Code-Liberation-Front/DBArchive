@@ -18,6 +18,7 @@ COPY . .
 #Path to database
 ENV DBName="DBNAME"
 ENV DBUser="DBUSER"
+ENV DBHost="DBHOST"
 #Interval between backup
 ENV Interval="INTERVAL"
 
