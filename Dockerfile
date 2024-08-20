@@ -21,5 +21,5 @@ ENV DBPath="DBPATH"
 ENV Interval="INTERVAL"
 
 #Run the main program
-CMD [ "python3", "-u", "snapshot.py" ]
+CMD [ "python3", "-u", "backup.py" ]
 
