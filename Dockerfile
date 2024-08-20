@@ -1,4 +1,3 @@
-#FROM --platform=linux/amd64 python:3.10.11-alpine3.17 as build
 FROM python:3.11.2-alpine
 
 LABEL AUTHOR=Clemson_Universiry
@@ -12,8 +11,10 @@ RUN apk upgrade
 WORKDIR /app
 COPY . .
 
-#Token variable
+#Path to database
 ENV DBPath="DBPATH"
+#Interval between backup
+ENV Interval="INTERVAL"
 
 #Run the main program
 CMD [ "python3", "-u", "snapshot.py" ]
