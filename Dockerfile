@@ -16,7 +16,7 @@ WORKDIR /app
 COPY . .
 
 # user:password@localhost:port/name
-ENV DBString="DBSTRING"
+ENV PostGresSQLURL="DBSTRING"
 
 #Interval between backup
 ENV Interval="INTERVAL"
