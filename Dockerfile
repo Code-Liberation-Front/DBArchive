@@ -1,6 +1,10 @@
 FROM python:3.11.2-alpine
 
-LABEL AUTHOR=Clemson_Universiry
+LABEL AUTHOR=Clemson_University
+
+# Adding Labels to identify repository for github
+LABEL org.opencontainers.image.source=https://github.com/Code-Liberation-Front/DBArchive
+LABEL org.opencontainers.image.description="DBArchive Container"
 
 COPY /requirements.txt /requirements.txt
 RUN pip3 install --upgrade pip

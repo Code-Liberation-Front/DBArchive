@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE: ${{ github.repository_owner }}/dbarchive
+  IMAGE: code-liberation-front/dbarchive
   VERSION: testing
 
 jobs:
