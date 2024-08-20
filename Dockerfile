@@ -16,7 +16,8 @@ WORKDIR /app
 COPY . .
 
 #Path to database
-ENV DBPath="DBPATH"
+ENV DBName="DBNAME"
+ENV DBUser="DBUSER"
 #Interval between backup
 ENV Interval="INTERVAL"
 
