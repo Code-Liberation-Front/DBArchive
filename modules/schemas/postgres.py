@@ -4,39 +4,33 @@
 # Run through list and create dump of each table
 
 import psycopg
-import subprocess
+import psycopg.rows
 
 # Return DB Object
 def connectDB(mySQLURL):
     return psycopg.connect(f"{mySQLURL}")
 
 def getTableList(dbObject):
-    with dbObject.cursor() as cur:
+    # row_factory outputs data as a dictionary
+    with dbObject.cursor(row_factory=psycopg.rows.dict_row) as cur:
         # Pull list of names of tables
-        return cur.copy("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
-    
+        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
+        tables = []
+        for item in cur.fetchall():
+            tables.append(item["table_name"])
+        return tables
+
+# Removes Unwanted Tables from the Table List
 def removeUnwantedTables(tableList, unwantedList):
-    for x in tableList:
-        for y in unwantedList:
+    for y in unwantedList:
+        for x in tableList:
             if x == y:
                 tableList.remove(y)
     return tableList
 
-def dumpTable(dburl,tableName):
-    try:
-        process = subprocess.Popen(
-            ['pg_dump',
-             '--dbname=postgresql://{}'.format(dburl),
-             '-Fc',
-             '-f', f"data/backup/{tableName}.sql",
-             '-v'],
-            stdout=subprocess.PIPE
-        )
-        output = process.communicate()[0]
-        if int(process.returncode) != 0:
-            print('Command failed. Return code : {}'.format(process.returncode))
-            exit(1)
-        return output
-    except Exception as e:
-        print(e)
-        exit(1)
+# Dumps a single Postgres table
+def dumpTable(dbObject, tableName : str):
+    with dbObject.cursor(row_factory=psycopg.rows.dict_row) as cur:
+        cur.execute(f"Select * FROM \"{tableName}\"")
+        return {tableName: cur.fetchall()}
+

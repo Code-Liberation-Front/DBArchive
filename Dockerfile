@@ -15,7 +15,7 @@ RUN apk upgrade
 WORKDIR /app
 COPY . .
 
-# user:password@localhost:port/name
+# postgres://user:password@localhost:port/database
 ENV PostGresSQLURL="DBSTRING"
 
 #Interval between backup

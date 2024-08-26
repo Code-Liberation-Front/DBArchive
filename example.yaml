@@ -1,0 +1,10 @@
+# YAML Scheme
+# databases:
+#   databasename: (Can be anything)
+#     uri: postgres://user:password@localhost:port/database
+#     excluded_tables:
+#       - table1
+#       - table2
+#     driver: postgres/mysql (postgres Default)
+#     backup_interval: (in hours) 1 Default
+#     backup_count: 5 Default
