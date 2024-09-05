@@ -14,6 +14,7 @@ import json
 location = os.environ.get("config", None)
 
 def main():
+    # import config, print config, connect to db, get the list of tables, remove unwanted, dump each table
     conf = config.importConfig(location)
     print(json.dumps(conf, indent=4))
     dbOBJ = pg.connectDB(conf["databases"]["postgres"]["uri"])

@@ -10,6 +10,7 @@ import psycopg.rows
 def connectDB(mySQLURL):
     return psycopg.connect(f"{mySQLURL}")
 
+# Return a list of tables in the database
 def getTableList(dbObject):
     # row_factory outputs data as a dictionary
     with dbObject.cursor(row_factory=psycopg.rows.dict_row) as cur:
