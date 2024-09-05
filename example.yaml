@@ -6,6 +6,6 @@
 #       - table1
 #       - table2
 #     driver: postgres/mysql (postgres Default)
-#     backup_interval: (in hours) 1 Default
-#     backup_count: 5 Default
+#     backup_interval: (in hours) Default disabled
+#     backup_count: Default disabled
 #     backup_location: /

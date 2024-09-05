@@ -48,4 +48,10 @@ def dumpTable(dbObject, tableName : str):
     with dbObject.cursor(row_factory=psycopg.rows.dict_row) as cur:
         cur.execute(f"Select * FROM \"{tableName}\"")
         return {tableName: cur.fetchall()}
+    
+# Dumps a single Postgres table
+def dumpMetadata(dbObject, tableName : str):
+    with dbObject.cursor(row_factory=psycopg.rows.dict_row) as cur:
+        cur.execute(f"SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'public' AND table_name = \'{tableName}\';")
+        return cur.fetchall()
 

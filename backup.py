@@ -31,15 +31,23 @@ def main():
     # Loop throught tables and take snapshot
     for name in tables:
         f = open(str(name+".json"), "w")
-        tableContents = json.dumps(pg.dumpTable(dbOBJ, name), indent=2)
+        tableContents = json.dumps(pg.dumpTable(dbOBJ, name), indent=4)
         print("Contents to be written to file" + str(tableContents))
         f.write(tableContents)
         f.close()
     dbOBJ.close()
 
+def test():
+    dbOBJ = pg.connectDB(conf["databases"]["postgres"]["uri"])
+    dbTableList = pg.getTableList(dbOBJ)
+    tables = pg.removeUnwantedTables(dbTableList, post["excluded_tables"])
+    for name in tables:
+        for row in pg.dumpMetadata(dbOBJ, name):
+            print(row)
+
 if __name__ == "__main__":
-    main()
-    print(os.getcwd())
+    #main()
+    test()
     if post["backup_interval"] > 0:
         mainTimer = timer.initializeTimer()
         timer.addJob(mainTimer, main, post["backup_interval"])
