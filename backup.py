@@ -16,6 +16,11 @@ location = os.environ.get("config", "config.yaml")
 # Set yaml config as conf
 conf = config.importConfig(location)
 post = conf["databases"]["postgres"]
+# Set path for backup files to go to
+savepath = post["backup_location"]
+if not os.path.exists(savepath):
+    os.mkdir(savepath)
+os.chdir(savepath)
 
 def main():
     # import config, print config, connect to db, get the list of tables, remove unwanted, dump each table
@@ -24,12 +29,17 @@ def main():
     dbTableList = pg.getTableList(dbOBJ)
     tables = pg.removeUnwantedTables(dbTableList, post["excluded_tables"])
     # Loop throught tables and take snapshot
-    for x in tables:
-        print(pg.dumpTable(dbOBJ, x))
+    for name in tables:
+        f = open(str(name+".json"), "w")
+        tableContents = json.dumps(pg.dumpTable(dbOBJ, name), indent=2)
+        print("Contents to be written to file" + str(tableContents))
+        f.write(tableContents)
+        f.close()
     dbOBJ.close()
 
 if __name__ == "__main__":
     main()
+    print(os.getcwd())
     if post["backup_interval"] > 0:
         mainTimer = timer.initializeTimer()
         timer.addJob(mainTimer, main, post["backup_interval"])

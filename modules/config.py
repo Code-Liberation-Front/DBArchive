@@ -1,3 +1,4 @@
+import os
 import yaml
 import modules.error as error
 
@@ -19,6 +20,8 @@ def importConfig(filename):
                         conf["databases"][database]["backup_interval"] = -1
                     if not conf["databases"][database].get("backup_count", None):
                         conf["databases"][database]["backup_count"] = -1
+                    if not conf["databases"][database].get("backup_location", None):
+                        conf["databases"][database]["backup_location"] = str(os.getcwd())+"/Backups"
             else:
                 print("databases Keyword is necessary to add a database")
             return conf

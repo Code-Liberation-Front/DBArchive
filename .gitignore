@@ -2,3 +2,5 @@
 .idea
 *.pyc
 config.yaml
+/Backups
+/BackupFiles
