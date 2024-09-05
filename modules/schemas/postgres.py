@@ -5,10 +5,16 @@
 
 import psycopg
 import psycopg.rows
+import modules.error as error
 
 # Return DB Object
 def connectDB(mySQLURL):
-    return psycopg.connect(f"{mySQLURL}")
+    try:
+        connection = psycopg.connect(f"{mySQLURL}")
+    except:
+        print("Cannot connect to DB, either unreachable or uri is incorrect")
+        error.exit_program()
+    return connection
 
 # Return a list of tables in the database
 def getTableList(dbObject):
@@ -19,15 +25,23 @@ def getTableList(dbObject):
         tables = []
         for item in cur.fetchall():
             tables.append(item["table_name"])
-        return tables
+        if not tables:
+            print("List of tables is empty")
+            error.exit_program()
+        else:
+            return tables
 
 # Removes Unwanted Tables from the Table List
 def removeUnwantedTables(tableList, unwantedList):
-    for y in unwantedList:
-        for x in tableList:
-            if x == y:
-                tableList.remove(y)
-    return tableList
+    if not unwantedList:
+        print("No tables to remove from list, skipping remove")
+        return tableList
+    else:
+        for y in unwantedList:
+            for x in tableList:
+                if x == y:
+                    tableList.remove(y)
+        return tableList
 
 # Dumps a single Postgres table
 def dumpTable(dbObject, tableName : str):
