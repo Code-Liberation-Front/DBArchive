@@ -31,8 +31,8 @@ def main():
     # Loop throught tables and take snapshot
     for name in tables:
         f = open(str(name+".json"), "w")
-        tableContents = json.dumps(pg.dumpTable(dbOBJ, name), indent=4)
-        print("Contents to be written to file" + str(tableContents))
+        combineTables = pg.dumpMetadata(dbOBJ, name) | pg.dumpTable(dbOBJ, name)
+        tableContents = json.dumps(combineTables, indent=4)
         f.write(tableContents)
         f.close()
     dbOBJ.close()
@@ -46,8 +46,8 @@ def test():
             print(row)
 
 if __name__ == "__main__":
-    #main()
-    test()
+    main()
+    #test()
     if post["backup_interval"] > 0:
         mainTimer = timer.initializeTimer()
         timer.addJob(mainTimer, main, post["backup_interval"])

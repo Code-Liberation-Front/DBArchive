@@ -22,6 +22,8 @@ def importConfig(filename):
                         conf["databases"][database]["backup_count"] = -1
                     if not conf["databases"][database].get("backup_location", None):
                         conf["databases"][database]["backup_location"] = str(os.getcwd())+"/Backups"
+                    if not conf["databases"][database].get("tz", None):
+                        conf["databases"][database]["tz"] = 'America/New_York'
             else:
                 print("databases Keyword is necessary to add a database")
             return conf
