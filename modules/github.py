@@ -1,11 +1,15 @@
 import os
 from git import Repo
 import modules.config as config
+import modules.time as t
 
-# Gives the location of the YAML Configuration File
-location = os.environ.get("config", "config.yaml")
-# Set yaml config as conf
-conf = config.importConfig(location)
-
-def setDir(location):
+def gitCommit(location, token):
     repo = Repo(location)
+    os.chdir(location)
+    backups = os.listdir(location)
+    commit_message = "Backup on "+str(t.getTime())
+    repo.index.add(backups)
+    repo.index.commit(commit_message)
+    origin = repo.remote('origin')
+    origin.push()
+
