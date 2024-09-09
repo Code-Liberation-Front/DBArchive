@@ -6,6 +6,8 @@
 import psycopg
 import psycopg.rows
 import modules.error as error
+from subprocess import PIPE, Popen
+import shlex
 
 # Return DB Object
 def connectDB(mySQLURL):
@@ -44,14 +46,8 @@ def removeUnwantedTables(tableList, unwantedList):
         return tableList
 
 # Dumps a single Postgres table
-def dumpTable(dbObject, tableName : str):
-    with dbObject.cursor(row_factory=psycopg.rows.dict_row) as cur:
-        cur.execute(f"Select * FROM \"{tableName}\"")
-        return {"Data": cur.fetchall()}
-    
-# Dumps a single Postgres table
-def dumpMetadata(dbObject, tableName : str):
-    with dbObject.cursor(row_factory=psycopg.rows.dict_row) as cur:
-        cur.execute(f"SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'public' AND table_name = \'{tableName}\';")
-        return {"Metadata": cur.fetchall()}
-
+def dumpTable(uri : str, tableName : str, fileLocation : str):
+    command = f"pg_dump {uri} -c -f {fileLocation} -t \\\"{tableName}\\\""
+    command = shlex.split(command)
+    print(command)
+    Popen(command, shell=False)

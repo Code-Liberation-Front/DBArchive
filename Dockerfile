@@ -10,7 +10,8 @@ COPY /requirements.txt /requirements.txt
 RUN pip3 install --upgrade pip
 RUN pip3 install -r /requirements.txt
 RUN apk update
-RUN apk upgrade
+RUN apk upgrade --available && sync
+RUN apk add --no-cache postgresql-client
 
 WORKDIR /app
 COPY . .

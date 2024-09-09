@@ -30,24 +30,11 @@ def main():
     tables = pg.removeUnwantedTables(dbTableList, post["excluded_tables"])
     # Loop throught tables and take snapshot
     for name in tables:
-        f = open(str(name+".json"), "w")
-        combineTables = pg.dumpMetadata(dbOBJ, name) | pg.dumpTable(dbOBJ, name)
-        tableContents = json.dumps(combineTables, indent=4)
-        f.write(tableContents)
-        f.close()
+        pg.dumpTable(conf["databases"]["postgres"]["uri"], name, f"{savepath}/{name}.sql")
     dbOBJ.close()
-
-def test():
-    dbOBJ = pg.connectDB(conf["databases"]["postgres"]["uri"])
-    dbTableList = pg.getTableList(dbOBJ)
-    tables = pg.removeUnwantedTables(dbTableList, post["excluded_tables"])
-    for name in tables:
-        for row in pg.dumpMetadata(dbOBJ, name):
-            print(row)
 
 if __name__ == "__main__":
     main()
-    #test()
     if post["backup_interval"] > 0:
         mainTimer = timer.initializeTimer()
         timer.addJob(mainTimer, main, post["backup_interval"])
