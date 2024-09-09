@@ -1,4 +1,4 @@
-FROM python:3.11.2-alpine
+FROM python:3.12.3-alpine
 
 LABEL AUTHOR=Clemson_University
 
@@ -15,12 +15,6 @@ RUN apk add --no-cache postgresql16-client
 
 WORKDIR /app
 COPY . .
-
-# postgres://user:password@localhost:port/database
-ENV PostGresSQLURL="DBSTRING"
-
-#Interval between backup
-ENV Interval="INTERVAL"
 
 #Run the main program
 CMD [ "python3", "-u", "backup.py" ]
