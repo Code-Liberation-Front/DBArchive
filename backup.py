@@ -29,8 +29,16 @@ def main():
     dbTableList = pg.getTableList(dbOBJ)
     tables = pg.removeUnwantedTables(dbTableList, post["excluded_tables"])
     # Loop throught tables and take snapshot
+    processes = []
     for name in tables:
-        pg.dumpTable(conf["databases"]["postgres"]["uri"], name, f"{savepath}/{name}.sql")
+        processes.append(pg.dumpTable(conf["databases"]["postgres"]["uri"], name, f"{savepath}/{name}.sql"))
+    while processes:
+        for index, process in enumerate(processes):
+            process.poll()
+            if process.returncode is not None:
+                processes.pop(index)
+                break
+
     dbOBJ.close()
 
 if __name__ == "__main__":

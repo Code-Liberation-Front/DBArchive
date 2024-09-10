@@ -50,4 +50,4 @@ def dumpTable(uri : str, tableName : str, fileLocation : str):
     command = f"pg_dump {uri} -c -f {fileLocation} -t \\\"{tableName}\\\""
     command = shlex.split(command)
     print(command)
-    Popen(command, shell=False)
+    return Popen(command, shell=False)
