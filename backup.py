@@ -7,46 +7,32 @@ import modules.timer as timer
 import os
 import json
 
-# iterate through the tables and make text file
-
-#check db string
-
 # Gives the location of the YAML Configuration File
 location = os.environ.get("config", "config.yaml")
 # Set yaml config as conf
 conf = config.importConfig(location)
-post = conf["databases"]["postgres"]
-# Set path for backup files to go to
-savepath = post["backup_location"]
-if not os.path.exists(savepath):
-    os.mkdir(savepath)
-os.chdir(savepath)
+
 
 def main():
     # import config, print config, connect to db, get the list of tables, remove unwanted, dump each table
     print(json.dumps(conf, indent=4))
-    dbOBJ = pg.connectDB(conf["databases"]["postgres"]["uri"])
-    dbTableList = pg.getTableList(dbOBJ)
-    tables = pg.removeUnwantedTables(dbTableList, post["excluded_tables"])
-    # Loop throught tables and take snapshot
-    processes = []
-    for name in tables:
-        processes.append(pg.dumpTable(conf["databases"]["postgres"]["uri"], name, f"{savepath}/{name}.sql"))
-    while processes:
-        for index, process in enumerate(processes):
-            process.poll()
-            if process.returncode is not None:
-                processes.pop(index)
-                break
 
-    dbOBJ.close()
+    for key in conf["databases"]:
+        database = conf["databases"][key]
+        # Set path for backup files to go to
+        if not os.path.exists(database["backup_location"]):
+            os.mkdir(database["backup_location"])
+        if database["driver"].lower() == "postgres":
+            dbOBJ = pg.PostgresDriver(database["uri"])
+            dbOBJ.removeUnwantedTables(database["excluded_tables"])
+            dbOBJ.dumpTables(f"{database["backup_location"]}")
+            del dbOBJ
+
 
 if __name__ == "__main__":
     main()
-    if post["backup_interval"] > 0:
-        mainTimer = timer.initializeTimer()
-        timer.addJob(mainTimer, main, post["backup_interval"])
-        print("Adding main to timer")
-    #timer.startTimer(mainTimer)
-    
-        
+    # if post["backup_interval"] > 0:
+    #     mainTimer = timer.initializeTimer()
+    #     timer.addJob(mainTimer, main, post["backup_interval"])
+    #     print("Adding main to timer")
+    # #timer.startTimer(mainTimer)
