@@ -1,11 +1,17 @@
-# YAML Scheme
-# databases:
-#   databasename: (Can be anything)
+#
+# YAML Scheme (All values are defaults unless specified)
+#
+# databases: (list of databases to be backed up)
+#   database1: (Can be anything)
 #     uri: postgres://user:password@localhost:port/database
 #     excluded_tables:
 #       - table1
-#       - table2
-#     driver: postgres/mysql (postgres Default)
-#     backup_interval: (in hours) Default disabled
-#     backup_count: Default disabled
-#     backup_location: /
+#       - ...
+#     driver: postgres (databasae type)
+#   database2:
+#     ...
+#args:
+#  backup_interval: 0 (hours)
+#  backup_count: 0 (number of backups to keep)
+#  backup_location: /Backups (path to where backups are stored)
+#  tz: America/New_York (set time zone)

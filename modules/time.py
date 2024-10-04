@@ -7,9 +7,10 @@ import modules.config as config
 location = os.environ.get("config", "config.yaml")
 # Set yaml config as conf
 conf = config.importConfig(location)
+# Set the tz from the config
+os.environ['TZ'] = conf["args"]["tz"]
 
-os.environ['TZ'] = conf["databases"]["postgres"]["tz"]
-
+# Get the current time are return a string with date and time
 def getTime():
     now = time.localtime()
     current_time = time.strftime("%H:%M:%S", now)

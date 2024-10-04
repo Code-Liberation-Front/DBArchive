@@ -12,6 +12,7 @@ import json
 location = os.environ.get("config", "config.yaml")
 # Set yaml config as conf
 conf = config.importConfig(location)
+args = conf["args"]
 
 
 def main():
@@ -24,15 +25,15 @@ def main():
         files = []
 
         # Set path for backup files to go to
-        if not os.path.exists(database["backup_location"]):
-            os.mkdir(database["backup_location"])
+        if not os.path.exists(args["backup_location"]):
+            os.mkdir(args["backup_location"])
 
         # If the driver is postgres, it connects and dumps the tables using psycopg
         if database["driver"].lower() == "postgres":
             try:
                 dbOBJ = pg.PostgresDriver(database["uri"])
                 dbOBJ.removeUnwantedTables(database["excluded_tables"])
-                files = dbOBJ.dumpTables(f"{database["backup_location"]}")
+                files = dbOBJ.dumpTables(f"{args["backup_location"]}")
                 print(files)
                 del dbOBJ
             except error.SQLServerError as e:
