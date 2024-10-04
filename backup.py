@@ -4,6 +4,7 @@
 import modules.schemas.postgres as pg
 import modules.config as config
 import modules.timer as timer
+import modules.error as error
 import os
 import json
 
@@ -17,16 +18,25 @@ def main():
     # import config, print config, connect to db, get the list of tables, remove unwanted, dump each table
     print(json.dumps(conf, indent=4))
 
+    # Iterates through all the configs and dumps the SQL files
     for key in conf["databases"]:
         database = conf["databases"][key]
+        files = []
+
         # Set path for backup files to go to
         if not os.path.exists(database["backup_location"]):
             os.mkdir(database["backup_location"])
+
+        # If the driver is postgres, it connects and dumps the tables using psycopg
         if database["driver"].lower() == "postgres":
-            dbOBJ = pg.PostgresDriver(database["uri"])
-            dbOBJ.removeUnwantedTables(database["excluded_tables"])
-            dbOBJ.dumpTables(f"{database["backup_location"]}")
-            del dbOBJ
+            try:
+                dbOBJ = pg.PostgresDriver(database["uri"])
+                dbOBJ.removeUnwantedTables(database["excluded_tables"])
+                files = dbOBJ.dumpTables(f"{database["backup_location"]}")
+                print(files)
+                del dbOBJ
+            except error.SQLServerError as e:
+                print(e)
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ import psycopg
 import psycopg.rows
 from psycopg import Error
 import modules.error as error
-from subprocess import PIPE, Popen
+from subprocess import Popen
 import shlex
 
 
@@ -16,36 +16,38 @@ class PostgresDriver:
     # Constructor sets up key items for backing up database
     def __init__(self, postgresuri):
         self.uri = postgresuri
-        self.connection = self.connectDB(postgresuri)
-        self.tables = self.getTableList()
-        print(f"Initializing Postgres connection to {self.uri}")
+        try:
+            self.connection = self.connectDB(postgresuri)
+            self.tables = self.getTableList()
+            print(f"Initializing Postgres connection to {self.uri}")
+        except Error:
+            raise error.SQLServerError("Could not connect to DB, either unreachable or uri is incorrect")
 
     # Destructor cleans up any items left after working with a database
     def __del__(self):
-        self.connection.close()
-        print(f"Postgres connection to {self.uri} has been closed")
+        try:
+            self.connection.close()
+            print(f"Postgres connection to {self.uri} has been closed")
+        except AttributeError:
+            pass
 
     # Return DB Object
     def connectDB(self, uri):
-        try:
-            connection = psycopg.connect(f"{uri}")
-        except Error:
-            print("Cannot connect to DB, either unreachable or uri is incorrect")
-            error.exit_program()
+        connection = psycopg.connect(f"{uri}")
         return connection
 
     # Return a list of tables in the database
     def getTableList(self):
         # row_factory outputs data as a dictionary
         with self.connection.cursor(row_factory=psycopg.rows.dict_row) as cur:
-            # Pull list of names of tables
+
+            # Pull list of names of tables and places
             cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
             tables = []
+
+            # Appends tables to object list
             for item in cur.fetchall():
                 tables.append(item["table_name"])
-            if not tables:
-                print("List of tables is empty")
-                error.exit_program()
             else:
                 return tables
 
@@ -63,14 +65,24 @@ class PostgresDriver:
     # Dumps a single Postgres table
     def dumpTables(self, fileLocation: str):
         processes = []
+        locations = []
+
+        # Runs the commands to dump all the tables
         for name in self.tables:
             command = f"pg_dump {self.uri} -c -f {fileLocation}/{name}.sql -t \\\"{name}\\\""
             command = shlex.split(command)
             print(command)
             processes.append(Popen(command, shell=False))
+            # Dumps the locations of files for later use
+            locations.append(f"{fileLocation}/{name}.sql")
+
+        # Ensures all the dumping processes are done before finishing
         while processes:
             for index, process in enumerate(processes):
                 process.poll()
                 if process.returncode is not None:
                     processes.pop(index)
                     break
+
+        # Returns list of file locations
+        return locations
