@@ -12,6 +12,7 @@ import json
 location = os.environ.get("config", "config.yaml")
 # Set yaml config as conf
 conf = config.importConfig(location)
+# Import Standalone Arguments
 args = conf["args"]
 
 
