@@ -9,6 +9,7 @@ from psycopg import Error
 import modules.error as error
 from subprocess import Popen
 import shlex
+import os
 
 
 class PostgresDriver:
@@ -86,3 +87,21 @@ class PostgresDriver:
 
         # Returns list of file locations
         return locations
+
+    def restoreTables(self, fileLocation: str):
+        processes = []
+
+        for file in os.listdir(fileLocation):
+            if os.path.isfile(f"{fileLocation}/{file}"):
+                command = f"psql {self.uri} -f {fileLocation}/{file}"
+                command = shlex.split(command)
+                print(command)
+                processes.append(Popen(command, shell=False))
+
+        # Ensures all the restoring processes are done before finishing
+        while processes:
+            for index, process in enumerate(processes):
+                process.poll()
+                if process.returncode is not None:
+                    processes.pop(index)
+                    break
