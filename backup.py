@@ -25,16 +25,16 @@ def main():
         database = conf["databases"][key]
         files = []
 
-        # Set path for backup files to go to
-        if not os.path.exists(args["backup_location"]):
-            os.mkdir(args["backup_location"])
-
         # If the driver is postgres, it connects and dumps the tables using psycopg
         if database["driver"].lower() == "postgres":
             try:
                 dbOBJ = pg.PostgresDriver(database["uri"])
                 dbOBJ.removeUnwantedTables(database["excluded_tables"])
-                files = dbOBJ.dumpTables(f"{args["backup_location"]}")
+
+                # If the path does not exist, it creates them
+                if not os.path.exists(f"{args["backup_location"]}/{key}"):
+                    os.makedirs(f"{args["backup_location"]}/{key}")
+                files = dbOBJ.dumpTables(f"{args["backup_location"]}/{key}")
                 print(files)
                 del dbOBJ
             except error.SQLServerError as e:

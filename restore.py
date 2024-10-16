@@ -20,15 +20,11 @@ def main():
     for key in conf["databases"]:
         database = conf["databases"][key]
 
-        # Set path for backup files to go to
-        if not os.path.exists(args["backup_location"]):
-            os.mkdir(args["backup_location"])
-
         # If the driver is postgres, it connects and restores the tables
         if database["driver"].lower() == "postgres":
             try:
                 dbOBJ = pg.PostgresDriver(database["uri"])
-                dbOBJ.restoreTables(f"{args["backup_location"]}")
+                dbOBJ.restoreTables(f"{args["backup_location"]}/{key}")
                 del dbOBJ
             except error.SQLServerError as e:
                 print(e)

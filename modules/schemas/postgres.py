@@ -92,7 +92,7 @@ class PostgresDriver:
         processes = []
 
         for file in os.listdir(fileLocation):
-            if os.path.isfile(f"{fileLocation}/{file}"):
+            if os.path.isfile(f"{fileLocation}/{file}") and file.endswith(".sql"):
                 command = f"psql {self.uri} -f {fileLocation}/{file}"
                 command = shlex.split(command)
                 print(command)
