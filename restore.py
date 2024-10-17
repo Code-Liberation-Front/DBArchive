@@ -25,7 +25,9 @@ def main():
             try:
                 dbOBJ = pg.PostgresDriver(database["uri"])
                 dbOBJ.restoreSchema(f"{args["backup_location"]}/{key}")
+                dbOBJ.unlockConstraints()
                 dbOBJ.restoreDatabase(f"{args["backup_location"]}/{key}")
+                dbOBJ.lockConstraints()
                 del dbOBJ
             except error.SQLServerError as e:
                 print(e)

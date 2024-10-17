@@ -37,6 +37,15 @@ class PostgresDriver:
         connection = psycopg.connect(f"{uri}")
         return connection
 
+    def processWait(self, processes):
+        # Ensures all the processes are done before finishing
+        while processes:
+            for index, process in enumerate(processes):
+                process.poll()
+                if process.returncode is not None:
+                    processes.pop(index)
+                    break
+
     # Return a list of tables in the database
     def getTableList(self):
         # row_factory outputs data as a dictionary
@@ -84,22 +93,7 @@ class PostgresDriver:
             locations.append(f"{fileLocation}/{name}.sql")
 
         # Ensures all the dumping processes are done before finishing
-        while processes:
-            for index, process in enumerate(processes):
-                process.poll()
-                if process.returncode is not None:
-                    processes.pop(index)
-                    break
-
-        # Applies ignoring foreign key constraints and reapplies it at the end
-        for file in os.listdir(fileLocation):
-            if os.path.isfile(f"{fileLocation}/{file}") and file.endswith(".sql") and file != "schema.sql":
-                with open(f"{fileLocation}/{file}", 'r') as origin:
-                    ogfile = origin.read()
-                with open(f"{fileLocation}/{file}", "w") as newfile:
-                    newfile.write("SET session_replication_role = replica;\n" + ogfile
-                                  + "SET session_replication_role = origin;\n")
-                del ogfile
+        self.processWait(processes)
 
         # Returns list of file locations
         return locations
@@ -110,12 +104,7 @@ class PostgresDriver:
             command = shlex.split(command)
             print(command)
             processes = [Popen(command, shell=False)]
-            while processes:
-                for index, process in enumerate(processes):
-                    process.poll()
-                    if process.returncode is not None:
-                        processes.pop(index)
-                        break
+            self.processWait(processes)
         else:
             pass
 
@@ -131,9 +120,49 @@ class PostgresDriver:
                 processes.append(Popen(command, shell=False))
 
         # Ensures all the restoring processes are done before finishing
-        while processes:
-            for index, process in enumerate(processes):
-                process.poll()
-                if process.returncode is not None:
-                    processes.pop(index)
-                    break
+        self.processWait(processes)
+
+    def unlockConstraints(self):
+        self.tables = self.getTableList()
+        print("Unlocking Database Constraints")
+        command = f"psql {self.uri} -c \""
+        for table in self.tables:
+            command = command + f"ALTER TABLE {table} DISABLE TRIGGER ALL; "
+        command = command + "\""
+        command = shlex.split(command)
+        process = [Popen(command, shell=False)]
+        self.processWait(process)
+        print("Ensuring Triggers are disabled")
+        for table in self.tables:
+            with self.connection.cursor(row_factory=psycopg.rows.dict_row) as cur:
+
+                # Pulls list of triggers for a particular table
+                cur.execute(f"SELECT oid, tgenabled FROM pg_trigger WHERE tgrelid = '{table}' :: regclass")
+
+                # Ensures triggers are disabled
+                for item in cur.fetchall():
+                    if item["tgenabled"] != "D":
+                        print(f"Constraint {item["oid"]} in table \'{table}\' did not disable properly")
+
+    def lockConstraints(self):
+        self.tables = self.getTableList()
+        print("Locking Database Constraints")
+        command = f"psql {self.uri} -c \""
+        for table in self.tables:
+            command = command + f"ALTER TABLE {table} ENABLE TRIGGER ALL; "
+        command = command + "\""
+        command = shlex.split(command)
+        process = [Popen(command, shell=False)]
+        self.processWait(process)
+
+        print("Ensuring Triggers are reenabled")
+        for table in self.tables:
+            with self.connection.cursor(row_factory=psycopg.rows.dict_row) as cur:
+
+                # Pulls list of triggers for a particular table
+                cur.execute(f"SELECT oid, tgenabled FROM pg_trigger WHERE tgrelid = '{table}' :: regclass")
+
+                # Ensures triggers are enabled
+                for item in cur.fetchall():
+                    if item["tgenabled"] == "D":
+                        print(f"Constraint {item["oid"]} in table \'{table}\' did not reenable")
