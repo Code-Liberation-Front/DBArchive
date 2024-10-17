@@ -64,13 +64,19 @@ class PostgresDriver:
                         self.tables.remove(y)
 
     # Dumps a single Postgres table
-    def dumpTables(self, fileLocation: str):
+    def dumpDatabase(self, fileLocation: str):
         processes = []
         locations = []
 
+        # First it dumps the database schema to ensure relationships are properly applied
+        command = f"pg_dump {self.uri} -s -c -f {fileLocation}/schema.sql"
+        command = shlex.split(command)
+        print(command)
+        processes.append(Popen(command, shell=False))
+
         # Runs the commands to dump all the tables
         for name in self.tables:
-            command = f"pg_dump {self.uri} -c -f {fileLocation}/{name}.sql -t \\\"{name}\\\""
+            command = f"pg_dump {self.uri} -a -f {fileLocation}/{name}.sql -t \\\"{name}\\\""
             command = shlex.split(command)
             print(command)
             processes.append(Popen(command, shell=False))
@@ -85,14 +91,40 @@ class PostgresDriver:
                     processes.pop(index)
                     break
 
+        # Applies ignoring foreign key constraints and reapplies it at the end
+        for file in os.listdir(fileLocation):
+            if os.path.isfile(f"{fileLocation}/{file}") and file.endswith(".sql") and file != "schema.sql":
+                with open(f"{fileLocation}/{file}", 'r') as origin:
+                    ogfile = origin.read()
+                with open(f"{fileLocation}/{file}", "w") as newfile:
+                    newfile.write("SET session_replication_role = replica;\n" + ogfile
+                                  + "SET session_replication_role = origin;\n")
+                del ogfile
+
         # Returns list of file locations
         return locations
 
-    def restoreTables(self, fileLocation: str):
+    def restoreSchema(self, fileLocation: str):
+        if os.path.exists(f"{fileLocation}/schema.sql"):
+            command = f"psql {self.uri} -f {fileLocation}/schema.sql"
+            command = shlex.split(command)
+            print(command)
+            processes = [Popen(command, shell=False)]
+            while processes:
+                for index, process in enumerate(processes):
+                    process.poll()
+                    if process.returncode is not None:
+                        processes.pop(index)
+                        break
+        else:
+            pass
+
+
+    def restoreDatabase(self, fileLocation: str):
         processes = []
 
         for file in os.listdir(fileLocation):
-            if os.path.isfile(f"{fileLocation}/{file}") and file.endswith(".sql"):
+            if os.path.isfile(f"{fileLocation}/{file}") and file.endswith(".sql") and file != "schema.sql":
                 command = f"psql {self.uri} -f {fileLocation}/{file}"
                 command = shlex.split(command)
                 print(command)

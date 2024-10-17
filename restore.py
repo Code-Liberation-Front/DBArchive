@@ -24,7 +24,8 @@ def main():
         if database["driver"].lower() == "postgres":
             try:
                 dbOBJ = pg.PostgresDriver(database["uri"])
-                dbOBJ.restoreTables(f"{args["backup_location"]}/{key}")
+                dbOBJ.restoreSchema(f"{args["backup_location"]}/{key}")
+                dbOBJ.restoreDatabase(f"{args["backup_location"]}/{key}")
                 del dbOBJ
             except error.SQLServerError as e:
                 print(e)

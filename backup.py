@@ -34,7 +34,7 @@ def main():
                 # If the path does not exist, it creates them
                 if not os.path.exists(f"{args["backup_location"]}/{key}"):
                     os.makedirs(f"{args["backup_location"]}/{key}")
-                files = dbOBJ.dumpTables(f"{args["backup_location"]}/{key}")
+                files = dbOBJ.dumpDatabase(f"{args["backup_location"]}/{key}")
                 print(files)
                 del dbOBJ
             except error.SQLServerError as e:
