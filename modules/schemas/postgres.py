@@ -11,7 +11,6 @@ from subprocess import Popen
 import shlex
 import os
 
-
 class PostgresDriver:
 
     # Constructor sets up key items for backing up database
@@ -37,9 +36,12 @@ class PostgresDriver:
         connection = psycopg.connect(f"{uri}")
         return connection
 
+    # Utility function to wait for processes to finish
     def processWait(self, processes):
-        # Ensures all the processes are done before finishing
+        # Iterates through list of processes
         while processes:
+
+            # Polls process to ensure completion and pops them once they are done
             for index, process in enumerate(processes):
                 process.poll()
                 if process.returncode is not None:
@@ -98,20 +100,27 @@ class PostgresDriver:
         # Returns list of file locations
         return locations
 
+    # Restores the schema of the desired database
     def restoreSchema(self, fileLocation: str):
+        # Checks for the existence of a schema file
         if os.path.exists(f"{fileLocation}/schema.sql"):
+
+            # The command to restore the schema is run and waits until completion
             command = f"psql {self.uri} -f {fileLocation}/schema.sql"
             command = shlex.split(command)
             print(command)
             processes = [Popen(command, shell=False)]
             self.processWait(processes)
         else:
-            pass
+            # if a schema file doesn't exist, it raises an error
+            raise error.SchemaError("Schema file could not be found")
 
-
+    # Restores the database after the schema is restored
     def restoreDatabase(self, fileLocation: str):
         processes = []
 
+        # Grabs all filenames for the dumps and ensures that the file is a file and checks it is a dump file
+        # Once its checked, it runs the command to restore the file to the database
         for file in os.listdir(fileLocation):
             if os.path.isfile(f"{fileLocation}/{file}") and file.endswith(".sql") and file != "schema.sql":
                 command = f"psql {self.uri} -f {fileLocation}/{file}"
@@ -122,7 +131,9 @@ class PostgresDriver:
         # Ensures all the restoring processes are done before finishing
         self.processWait(processes)
 
+    # Constraints are unlocked so that tables can be imported into a new database
     def unlockConstraints(self):
+        # First it grabs a tablelist after schema is imported, and then it disables all the constraints in the database
         self.tables = self.getTableList()
         print("Unlocking Database Constraints")
         command = f"psql {self.uri} -c \""
@@ -132,6 +143,8 @@ class PostgresDriver:
         command = shlex.split(command)
         process = [Popen(command, shell=False)]
         self.processWait(process)
+
+        # Once constraints are disabled, it ensures that triggers were disabled properly
         print("Ensuring Triggers are disabled")
         for table in self.tables:
             with self.connection.cursor(row_factory=psycopg.rows.dict_row) as cur:
@@ -142,9 +155,12 @@ class PostgresDriver:
                 # Ensures triggers are disabled
                 for item in cur.fetchall():
                     if item["tgenabled"] != "D":
-                        print(f"Constraint {item["oid"]} in table \'{table}\' did not disable properly")
+                        # If a trigger was not disabled, a constraint error is thrown
+                        raise error.ConstraintError(f"Constraint {item["oid"]} in table \'{table}\' did not disable properly")
 
+    # Constraints are locked after table is reimported into a new database
     def lockConstraints(self):
+        # First it grabs a tablelist after schema is imported, and then it enables all the constraints in the database
         self.tables = self.getTableList()
         print("Locking Database Constraints")
         command = f"psql {self.uri} -c \""
@@ -155,6 +171,7 @@ class PostgresDriver:
         process = [Popen(command, shell=False)]
         self.processWait(process)
 
+        # Once constraints are disabled, it ensures that triggers were enabled properly
         print("Ensuring Triggers are reenabled")
         for table in self.tables:
             with self.connection.cursor(row_factory=psycopg.rows.dict_row) as cur:
@@ -165,4 +182,5 @@ class PostgresDriver:
                 # Ensures triggers are enabled
                 for item in cur.fetchall():
                     if item["tgenabled"] == "D":
-                        print(f"Constraint {item["oid"]} in table \'{table}\' did not reenable")
+                        # If a trigger was not enabled, a constraint error is thrown
+                        raise error.ConstraintError(f"Constraint {item["oid"]} in table \'{table}\' did not enable properly")

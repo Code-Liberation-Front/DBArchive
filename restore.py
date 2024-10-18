@@ -1,4 +1,4 @@
-# This file is responsible for the complete backup process
+# This file is responsible for the complete restore process
 import modules.schemas.postgres as pg
 import modules.config as config
 import modules.error as error
@@ -30,6 +30,10 @@ def main():
                 dbOBJ.lockConstraints()
                 del dbOBJ
             except error.SQLServerError as e:
+                print(e)
+            except error.SchemaError as e:
+                print(e)
+            except error.ConstraintError as e:
                 print(e)
 
 
