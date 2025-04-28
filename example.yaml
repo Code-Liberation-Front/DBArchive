@@ -7,7 +7,7 @@
 #     excluded_tables:
 #       - table1
 #       - ...
-#     driver: postgres (databasae type)
+#     driver: postgres (database type)
 #   database2:
 #     ...
 #args:

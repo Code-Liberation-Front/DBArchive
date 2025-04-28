@@ -29,8 +29,6 @@ def importConfig(filename):
                 conf["args"]["backup_location"] = str(os.getcwd())+"/Backups"
             if not conf["args"].get("tz", None):
                 conf["args"]["tz"] = 'America/New_York'
-            else:
-                print("databases Keyword is necessary to add a database")
             return conf
         except yaml.YAMLError:
             return None

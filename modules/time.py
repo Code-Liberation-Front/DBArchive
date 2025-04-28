@@ -11,8 +11,30 @@ conf = config.importConfig(location)
 os.environ['TZ'] = conf["args"]["tz"]
 
 # Get the current time are return a string with date and time
+def getDateTime():
+    now = time.localtime()
+    currentTime = time.strftime("%H:%M:%S", now)
+    currentDateTime = str(date.today()) + "_" + str(currentTime) # Todays Date
+    return currentDateTime
+
+def getDateTimeFSAware():
+    now = time.localtime()
+    currentTime = time.strftime("%H%M%S", now)
+    currentDateTime = str(date.today()) + "_" + str(currentTime)
+    return currentDateTime
+
+# Get the current time
 def getTime():
     now = time.localtime()
-    current_time = time.strftime("%H:%M:%S", now)
-    currentDateTime = str(date.today()) + " " + str(current_time) # Todays Date
-    return currentDateTime
+    currentTime = time.strftime("%H:%M:%S", now)
+    return str(currentTime)
+
+# Get the current Date
+def getDate():
+    currentDate = str(date.today()) # Todays Date
+    return currentDate
+
+# Get the current Year
+def getYear():
+    year = str(date.today().year) # Todays Date
+    return year

@@ -93,6 +93,12 @@ class PostgresDriver:
             processes.append(Popen(command, shell=False))
             # Dumps the locations of files for later use
             locations.append(f"{fileLocation}/{name}.sql")
+            active = -1
+            while active < 0 or active >= os.cpu_count():
+                active = 0
+                for process in processes:
+                    if process.poll() is None:
+                        active += 1
 
         # Ensures all the dumping processes are done before finishing
         self.processWait(processes)
@@ -127,6 +133,12 @@ class PostgresDriver:
                 command = shlex.split(command)
                 print(command)
                 processes.append(Popen(command, shell=False))
+                active = -1
+                while active < 0 or active >= os.cpu_count():
+                    active = 0
+                    for process in processes:
+                        if process.poll() is None:
+                            active += 1
 
         # Ensures all the restoring processes are done before finishing
         self.processWait(processes)

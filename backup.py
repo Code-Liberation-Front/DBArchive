@@ -5,8 +5,11 @@ import modules.schemas.postgres as pg
 import modules.config as config
 import modules.timer as timer
 import modules.error as error
+import modules.time as time
+import modules.archive as archive
 import os
 import json
+import shutil
 
 # Gives the location of the YAML Configuration File
 location = os.environ.get("config", "config.yaml")
@@ -31,10 +34,22 @@ def main():
                 dbOBJ = pg.PostgresDriver(database["uri"])
                 dbOBJ.removeUnwantedTables(database["excluded_tables"])
 
-                # If the path does not exist, it creates them
+                # If the path does not exist for the database, create
                 if not os.path.exists(f"{args["backup_location"]}/{key}"):
                     os.makedirs(f"{args["backup_location"]}/{key}")
-                files = dbOBJ.dumpDatabase(f"{args["backup_location"]}/{key}")
+
+                # It then ensures the temporary compression directory is made
+                if not os.path.exists(f"{str(os.getcwd())}/tmp"):
+                    os.makedirs(f"{str(os.getcwd())}/tmp")
+
+                # Database is Dumped to temporary folder
+                files = dbOBJ.dumpDatabase(f"{str(os.getcwd())}/tmp")
+                archive.backup(f"{key}/{key}_{time.getDateTimeFSAware()}",f"{str(os.getcwd())}/tmp")
+
+                # Temporary directory is then cleaned
+                if os.path.exists(f"{str(os.getcwd())}/tmp"):
+                    shutil.rmtree(f"{str(os.getcwd())}/tmp")
+
                 print(files)
                 del dbOBJ
             except error.SQLServerError as e:
@@ -42,9 +57,11 @@ def main():
 
 
 if __name__ == "__main__":
+    # Run the program once
     main()
-    # if post["backup_interval"] > 0:
-    #     mainTimer = timer.initializeTimer()
-    #     timer.addJob(mainTimer, main, post["backup_interval"])
-    #     print("Adding main to timer")
-    # #timer.startTimer(mainTimer)
+    # Start the timer if an interval is given
+    if args["backup_interval"] > 0:
+        mainTimer = timer.initializeTimer()
+        timer.addJob(mainTimer, main, args["backup_interval"])
+        print("Adding program to timer")
+        timer.startTimer(mainTimer)
