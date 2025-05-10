@@ -26,29 +26,36 @@ def main():
     # Iterates through all the configs and dumps the SQL files
     for key in conf["databases"]:
         database = conf["databases"][key]
+        temp_dir = os.path.join(str(os.getcwd()), "tmp")
         files = []
 
         # If the driver is postgres, it connects and dumps the tables using psycopg
         if database["driver"].lower() == "postgres":
             try:
+                backup_dir = os.path.join(args["backup_location"], key)
                 dbOBJ = pg.PostgresDriver(database["uri"])
                 dbOBJ.removeUnwantedTables(database["excluded_tables"])
 
                 # If the path does not exist for the database, create
-                if not os.path.exists(f"{args["backup_location"]}/{key}"):
-                    os.makedirs(f"{args["backup_location"]}/{key}")
+                if not os.path.exists(backup_dir):
+                    os.makedirs(backup_dir)
 
                 # It then ensures the temporary compression directory is made
-                if not os.path.exists(f"{str(os.getcwd())}/tmp"):
-                    os.makedirs(f"{str(os.getcwd())}/tmp")
+                if not os.path.exists(temp_dir):
+                    os.makedirs(temp_dir)
 
                 # Database is Dumped to temporary folder
-                files = dbOBJ.dumpDatabase(f"{str(os.getcwd())}/tmp")
-                archive.backup(f"{key}/{key}_{time.getDateTimeFSAware()}",f"{str(os.getcwd())}/tmp")
+                files = dbOBJ.dumpDatabase(temp_dir)
+                filename = f"{key}_{time.getDateTimeFSAware()}"
+                archive.backup(os.path.join(str(backup_dir), filename), temp_dir)
 
                 # Temporary directory is then cleaned
-                if os.path.exists(f"{str(os.getcwd())}/tmp"):
-                    shutil.rmtree(f"{str(os.getcwd())}/tmp")
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+
+                # If there is more than the backup count, then the oldest backups are removed
+                while 0 < int(args["backup_count"]) < archive.backup_count(backup_dir):
+                    os.remove(archive.oldest_backup(backup_dir))
 
                 print(files)
                 del dbOBJ
