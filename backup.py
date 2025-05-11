@@ -72,7 +72,5 @@ if __name__ == "__main__":
     main()
     # Start the timer if an interval is given
     if args["backup_interval"] > 0:
-        mainTimer = timer.initializeTimer()
-        timer.addJob(mainTimer, main, args["backup_interval"])
-        print("Adding program to timer")
-        timer.startTimer(mainTimer)
+        mainTimer = timer.Scheduler(main, args["backup_interval"])
+        mainTimer.start_timer()
