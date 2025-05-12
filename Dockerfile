@@ -1,4 +1,4 @@
-FROM python:3.12.3-alpine
+FROM python:3.13.3-alpine
 
 LABEL AUTHOR=Clemson_University
 
@@ -11,7 +11,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r /requirements.txt
 RUN apk update
 RUN apk upgrade --available && sync
-RUN apk add --no-cache postgresql16-client
+RUN apk add --no-cache postgresql17-client
 
 WORKDIR /app
 COPY . .
