@@ -8,7 +8,7 @@ import json
 # Gives the location of the YAML Configuration File
 location = os.environ.get("config", "config.yaml")
 # Set yaml config as conf
-conf = config.importConfig(location)
+conf = config.import_configuration(location)
 # Import Standalone Arguments
 args = conf["args"]
 

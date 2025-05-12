@@ -3,7 +3,9 @@ import yaml
 import modules.error as error
 
 # Reads in the config file
-def importConfig(filename):
+def import_configuration(filename):
+
+    # First, it opens the file in read only mode and reads the individual database items
     with open(filename, 'r') as file:
         try:
             conf = yaml.safe_load(file)
@@ -18,6 +20,7 @@ def importConfig(filename):
             else:
                 raise error.ConfigError("No Databases Provided")
 
+            # Then it loads global configuration items
             if not conf.get("args", None):
                 conf["args"] = {}
 
@@ -36,6 +39,9 @@ def importConfig(filename):
             if not conf["args"].get("tz", None):
                 conf["args"]["tz"] = 'America/New_York'
             return conf
+
+        # If there is an error with the yaml file or an error with the configuration provided, it raises an error and
+        # exits the program
         except yaml.YAMLError:
             print(f"{error.color.RED}{error.color.BOLD}ConfigurationError: The Provided Yaml File is Invalid{error.color.END}")
             error.exit_program()

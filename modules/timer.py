@@ -6,6 +6,7 @@ def initialize_timer():
     scheduler = BlockingScheduler()
     return scheduler
 
+# Runs the job at the specified interval
 class Scheduler:
     def __init__(self, function, interval):
         self.scheduler = initialize_timer()

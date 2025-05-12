@@ -37,6 +37,7 @@ class ConstraintError(Exception):
         self.message = message
         super().__init__(f"{color.RED}{color.BOLD}ConstraintError: {message}{color.END}")
 
+# Exceptions regarding Errors with Configuration
 class ConfigError(Exception):
     def __init__(self, message=None):
         self.message = message
