@@ -7,6 +7,11 @@ from datetime import datetime
 def backup(file_name, file_directory):
     shutil.make_archive(file_name, 'zip', file_directory)
 
+# source: Directory with filename for zipfile
+# destination: Where to unpack the archive
+def extract(source, destination):
+    shutil.unpack_archive(source, destination, 'zip')
+
 def backup_count(file_directory):
     files = os.listdir(file_directory)
     file_count = 0
